@@ -193,20 +193,6 @@ if (uploadBtn && fileInput) {
     });
 }
 
-//Busca no catálogo
-
-function BotaoBusca() {
-    var Busca = `
-        <input type="text" id="inputBusca" class="botaoMenuPlantas" placeholder="Buscar planta...">
-    `;
-
-    $('#ContainerBusca').html(Busca);
-
-    $('#botaoBusca').remove();
-}
-
-
-
 
 
 
@@ -255,7 +241,7 @@ function BotaoBusca() {
 
 
 
-//autocomplete do Matheus quie eu não consigo mexer
+//autocomplete do Matheus que eu não consigo mexer
 
 /*
 
