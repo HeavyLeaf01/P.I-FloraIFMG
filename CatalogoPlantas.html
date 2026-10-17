@@ -32,8 +32,10 @@
 
             <!-- Busca -->
             <div class="Busca">
-
-                <input type="text" id="inputBusca" class="botaoMenuPlantas" placeholder="Buscar planta..." >
+                <div class="inputBuscaWrapper">
+                    <input type="text" id="inputSugestao" class="botaoMenuPlantas" tabindex="-1" aria-hidden="true" readonly>
+                    <input type="text" id="inputBusca" class="botaoMenuPlantas" placeholder="Buscar planta..." autocomplete="off">
+                </div>
             </div>
 
 
