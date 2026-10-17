@@ -195,92 +195,22 @@ if (uploadBtn && fileInput) {
 
 // Autocomplete (Brutal a diferença em comparação com o código antigo kkkkkkk)
 $(document).ready(function () {
-    const inputBusca    = document.getElementById('inputBusca');
-    const inputSugestao = document.getElementById('inputSugestao');
-    if (!inputBusca || !inputSugestao) return; // só roda na página do catálogo
+    const inputBusca = document.getElementById('inputBusca');
+    if (!inputBusca) return; // só roda na página do catálogo
 
-    let apagando = false; // flag para não re-sugerir quando o usuário apaga
+    inputBusca.addEventListener('input', function () {
+        const textoDigitado = this.value.toLowerCase().trim();
 
-    // Coleta todos os nomes disponíveis a partir dos cards do DOM
-    function obterSugestoes() {
-        const nomes = [];
         document.querySelectorAll('.ItemPlanta').forEach(function (item) {
-            const cientifico = item.querySelector('.tituloCard')?.textContent.trim();
-            const popular    = item.querySelector('.infocat')?.textContent.trim();
-            if (cientifico) nomes.push(cientifico);
-            if (popular)    nomes.push(popular);
-        });
-        return nomes;
-    }
-
-    // Acha o primeiro nome que começa com o texto digitado (case-insensitive)
-    function encontrarSugestao(digitado) {
-        if (!digitado) return '';
-        const lower = digitado.toLowerCase();
-        return obterSugestoes().find(n => n.toLowerCase().startsWith(lower)) || '';
-    }
-
-    // Filtra os cards visíveis (mantém o comportamento original)
-    function filtrarCards(digitado) {
-        const lower = digitado.toLowerCase().trim();
-        document.querySelectorAll('.ItemPlanta').forEach(function (item) {
+            // Pega o nome científico (tituloCard) e o nome popular (primeira .infocat)
             const nomeCientifico = item.querySelector('.tituloCard')?.textContent.toLowerCase() ?? '';
             const nomePopular    = item.querySelector('.infocat')?.textContent.toLowerCase() ?? '';
-            const bate = lower === '' || nomeCientifico.includes(lower) || nomePopular.includes(lower);
+
+            const bate = textoDigitado === ''
+                || nomeCientifico.includes(textoDigitado)
+                || nomePopular.includes(textoDigitado);
+
             item.style.display = bate ? '' : 'none';
         });
-    }
-
-    // Remove a sugestão fantasma
-    function limparSugestao() {
-        inputSugestao.value = '';
-    }
-
-    // Marca que o usuário está apagando (antes do caractere ser removido)
-    inputBusca.addEventListener('keydown', function (e) {
-        if (e.key === 'Backspace' || e.key === 'Delete') {
-            apagando = true;
-            limparSugestao();
-        }
-
-        // Enter ou → aceita a sugestão
-        if ((e.key === 'Enter' || e.key === 'ArrowRight') && inputSugestao.value) {
-            inputBusca.value = inputSugestao.value;
-            limparSugestao();
-            filtrarCards(inputBusca.value);
-            e.preventDefault();
-        }
-
-        // Escape limpa tudo
-        if (e.key === 'Escape') {
-            limparSugestao();
-        }
-    });
-
-    // Evento principal: digitação
-    inputBusca.addEventListener('input', function () {
-        const digitado = this.value;
-
-        filtrarCards(digitado);
-
-        if (apagando) {
-            apagando = false;
-            limparSugestao();
-            return;
-        }
-
-        if (digitado === '') {
-            limparSugestao();
-            return;
-        }
-
-        const sugestao = encontrarSugestao(digitado);
-        // Mostra o nome completo no input fantasma (parte digitada + continuação em verde)
-        inputSugestao.value = sugestao || digitado;
-    });
-
-    // Clique fora: limpa sugestão
-    document.addEventListener('click', function (e) {
-        if (e.target !== inputBusca) limparSugestao();
     });
 });
