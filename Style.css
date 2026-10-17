@@ -337,6 +337,35 @@ button.botaoMenuPlantas{
     margin: 20px;
 }
 
+/* ── Autocomplete inline ── */
+.inputBuscaWrapper {
+    position: relative;
+    width: 300px;
+}
+
+#inputSugestao {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    border: none;
+    outline: none;
+    background: transparent;
+    caret-color: transparent;
+
+    /* ↓↓↓ COR DA SUGESTÃO — troque aqui futuramente ↓↓↓ */
+    color: #1D4710;
+    /* ↑↑↑ COR DA SUGESTÃO — troque aqui futuramente ↑↑↑ */
+}
+
+#inputBusca {
+    position: relative;
+    width: 100%;
+    background: transparent;
+}
+
 
 
 
