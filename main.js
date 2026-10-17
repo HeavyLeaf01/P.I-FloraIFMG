@@ -192,7 +192,7 @@ if (uploadBtn && fileInput) {
     });
 }
 
-
+// Estou usando o claude para me auxíliar nessa parte, porque não consegui achar nenhum tutorial que fizesse o autocomplete inline corretamente.
 // Autocomplete
 $(document).ready(function () {
     const inputBusca    = document.getElementById('inputBusca');
