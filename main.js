@@ -198,9 +198,9 @@ $(document).ready(function () {
     const inputBusca    = document.getElementById('inputBusca');
     const inputSugestao = document.getElementById('inputSugestao');
     if (!inputBusca || !inputSugestao) return; // só roda na página do catálogo
-
+ 
     let apagando = false; // marcação pra não re-sugerir quando o usuário apaga
-
+ 
     // Coleta todos os nomes disponíveis a partir dos cards do catalogo
     function obterSugestoes() {
         const nomes = [];
@@ -212,14 +212,14 @@ $(document).ready(function () {
         });
         return nomes;
     }
-
+ 
     // Acha o primeiro nome que começa com o texto digitado (case-insensitive)
     function encontrarSugestao(digitado) {
         if (!digitado) return '';
         const lower = digitado.toLowerCase();
         return obterSugestoes().find(n => n.toLowerCase().startsWith(lower)) || '';
     }
-
+ 
     // Filtra os cards visíveis (mantém o comportamento original)
     function filtrarCards(digitado) {
         const lower = digitado.toLowerCase().trim();
@@ -230,19 +230,31 @@ $(document).ready(function () {
             item.style.display = bate ? '' : 'none';
         });
     }
-
+ 
     // Remove a sugestão fantasma
     function limparSugestao() {
         inputSugestao.value = '';
     }
-
+ 
+    // Corrige a capitalização da primeira letra para bater com o nome da planta
+    function corrigirCapitalizacao(digitado) {
+        if (!digitado) return digitado;
+        const sugestao = encontrarSugestao(digitado);
+        if (!sugestao) return digitado;
+        // Se a primeira letra do nome difere do que foi digitado, corrige só ela
+        if (sugestao[0] !== digitado[0]) {
+            return sugestao[0] + digitado.slice(1);
+        }
+        return digitado;
+    }
+ 
     // Marca que o usuário está apagando (antes do caractere ser removido)
     inputBusca.addEventListener('keydown', function (e) {
         if (e.key === 'Backspace' || e.key === 'Delete') {
             apagando = true;
             limparSugestao();
         }
-
+ 
         // Enter ou → aceita a sugestão
         if ((e.key === 'Enter' || e.key === 'ArrowRight') && inputSugestao.value) {
             inputBusca.value = inputSugestao.value;
@@ -250,37 +262,47 @@ $(document).ready(function () {
             filtrarCards(inputBusca.value);
             e.preventDefault();
         }
-
+ 
         // Escape limpa tudo
         if (e.key === 'Escape') {
             limparSugestao();
         }
     });
-
+ 
     // Evento principal: digitação
     inputBusca.addEventListener('input', function () {
-        const digitado = this.value;
-
+        let digitado = this.value;
+ 
         filtrarCards(digitado);
-
+ 
         if (apagando) {
             apagando = false;
             limparSugestao();
             return;
         }
-
+ 
         if (digitado === '') {
             limparSugestao();
             return;
         }
-
+ 
+        // Corrige capitalização e atualiza o input se necessário
+        const digitadoCorrigido = corrigirCapitalizacao(digitado);
+        if (digitadoCorrigido !== digitado) {
+            const pos = this.selectionStart;
+            this.value = digitadoCorrigido;
+            this.setSelectionRange(pos, pos);
+            digitado = digitadoCorrigido;
+        }
+ 
         const sugestao = encontrarSugestao(digitado);
         // Mostra o nome completo no input fantasma (parte digitada + continuação em verde)
         inputSugestao.value = sugestao || digitado;
     });
-
+ 
     // Clique fora: limpa sugestão
     document.addEventListener('click', function (e) {
         if (e.target !== inputBusca) limparSugestao();
     });
 });
+ 
