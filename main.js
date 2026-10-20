@@ -193,19 +193,130 @@ if (uploadBtn && fileInput) {
 }
 
 
+// CATÁLOGO AUTOMÁTICO
+// Lê as informações direto da página de cada planta (DurantaErecta.html etc.)
 
 
+// Tira acento e deixa em maiúsculo, pra comparar os títulos ("GÊNERO" vira "GENERO")
+function normalizarTexto(texto) {
+    return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+}
 
+// Cria um elemento já com classe e texto (textContent evita injetar HTML sem querer)
+function criarElemento(tag, classe, texto) {
+    const el = document.createElement(tag);
+    if (classe) el.className = classe;
+    if (texto !== undefined) el.textContent = texto;
+    return el;
+}
 
+// Recebe o HTML da página da planta e devolve um objeto com os dados do card
+function lerPlanta(html, pagina) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
 
+    const planta = {
+        pagina: pagina,
+        nome: doc.querySelector('.titulopag')?.textContent.trim() || '',
+        popular: '',
+        genero: '',
+        familia: '',
+        fotos: []
+    };
 
+    // Só o primeiro bloco de categorias (o de baixo, CategoriasFinais, é da localização)
+    doc.querySelectorAll('.CategoriasIniciais:not(.CategoriasFinais) .Categoria').forEach(function (cat) {
+        const titulo = normalizarTexto(cat.querySelector('.titulocat')?.textContent || '');
+        const valor  = cat.querySelector('.infocat')?.textContent.trim() || '';
 
+        if (titulo.includes('POPULAR')) planta.popular = valor;
+        else if (titulo.includes('GENERO')) planta.genero = valor;
+        else if (titulo.includes('FAMILIA')) planta.familia = valor;
+    });
 
+    // As 4 primeiras fotos da seção "Imagens" da página da planta
+    planta.fotos = Array.from(doc.querySelectorAll('.imagensPlantas img'))
+        .slice(0, 4)
+        .map(function (img) { return img.getAttribute('src'); });
 
+    // Avisa no console o que ficou faltando (pra você achar rápido o que completar)
+    ['nome', 'popular', 'genero', 'familia'].forEach(function (campo) {
+        if (!planta[campo]) console.warn('[Catálogo] ' + pagina + ': campo "' + campo + '" está vazio.');
+    });
+    if (planta.fotos.length === 0) console.warn('[Catálogo] ' + pagina + ': nenhuma foto encontrada.');
 
+    return planta;
+}
 
+// Monta um bloco "título + valor" (NOME POPULAR, GÊNERO, FAMÍLIA)
+function criarCategoria(titulo, valor, cientifico) {
+    const cat = criarElemento('div', 'Categoria');
+    cat.appendChild(criarElemento('p', 'titulocat', titulo));
+    cat.appendChild(criarElemento('p', cientifico ? 'infocat cientifico' : 'infocat', valor || '—'));
+    return cat;
+}
 
+// Monta o card da planta, com a mesma estrutura que existia no HTML
+function criarCard(planta) {
+    const item = criarElemento('div', 'ItemPlanta');
 
+    const link = criarElemento('a', 'CardPlanta');
+    link.href = planta.pagina;
+
+    const fotos = criarElemento('div', 'FotosCard');
+    planta.fotos.forEach(function (src) {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = planta.nome;
+        fotos.appendChild(img);
+    });
+
+    const info = criarElemento('div', 'InfoCard');
+    const titulo = criarElemento('p', 'tituloCard');
+    titulo.appendChild(criarElemento('b', '', planta.nome));
+    info.appendChild(titulo);
+
+    const categorias = criarElemento('div', 'CategoriasIniciais');
+    categorias.appendChild(criarCategoria('NOMES(s) POPULAR(ES)', planta.popular, false));
+    categorias.appendChild(criarCategoria('GÊNERO', planta.genero, true));
+    categorias.appendChild(criarCategoria('FAMÍLIA', planta.familia, true));
+    info.appendChild(categorias);
+
+    link.appendChild(fotos);
+    link.appendChild(info);
+    item.appendChild(link);
+    item.appendChild(criarElemento('hr', 'linhaCard'));
+
+    return item;
+}
+
+// Função principal: recebe a lista de páginas e monta o catálogo na ordem da lista
+async function carregarCatalogo(paginas) {
+    const lista = document.getElementById('ListaPlantas');
+    if (!lista) return; // só roda na página do catálogo
+
+    // fetch não funciona abrindo o arquivo direto (file://), precisa de servidor
+    if (location.protocol === 'file:') {
+        lista.appendChild(criarElemento('p', 'infocat',
+            'Para o catálogo carregar, abra o site por um servidor (Live Server do VS Code ou GitHub Pages).'));
+        return;
+    }
+
+    // Busca todas as páginas ao mesmo tempo; Promise.all mantém a ordem da lista
+    const plantas = await Promise.all(paginas.map(async function (pagina) {
+        try {
+            const resposta = await fetch(pagina);
+            if (!resposta.ok) throw new Error('HTTP ' + resposta.status);
+            return lerPlanta(await resposta.text(), pagina);
+        } catch (erro) {
+            console.warn('[Catálogo] Não consegui carregar ' + pagina + ':', erro.message);
+            return null; // página não existe ainda: pula essa planta
+        }
+    }));
+
+    plantas.filter(Boolean).forEach(function (planta) {
+        lista.appendChild(criarCard(planta));
+    });
+}
 
 
 // Estou usando o claude para me auxíliar nessa parte, porque não consegui achar nenhum tutorial que fizesse o autocomplete inline corretamente.
@@ -321,4 +432,3 @@ $(document).ready(function () {
         if (e.target !== inputBusca) limparSugestao();
     });
 });
- 
