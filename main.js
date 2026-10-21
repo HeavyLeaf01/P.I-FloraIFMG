@@ -54,7 +54,7 @@ function BotaoQRCode() {
     `;
 
     var BotaoVoltar = `
-        <button class="SetaIndex" onclick="window.location.href = 'index.html'"><img src="FotosPlantas/seta.png" width="29vh"></button>
+        <button class="SetaIndex" onclick="window.location.href = 'index.html'"><img src="FotosPlantas/seta.webp" width="29vh"></button>
     `;
 
     // 2. Insere o código dentro da área desejada
